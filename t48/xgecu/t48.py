@@ -14,15 +14,9 @@ def validate_read(expected, actual, msg):
         #raise Exception('failed validate: %s' % msg)
 
 class T48:
-    def __init__(self, usbcontext, dev, init=True):
+    def __init__(self, usbcontext, dev):
         self.usbcontext = usbcontext
         self.dev = dev
-
-        # does not seem to be required for version init
-        if 0 and init:
-            # XXX: send this at init only or just before version read?
-            buff = self.controlRead(0xC0, 0xEE, 0x0000, 0x0004, 16)
-            validate_read(b"\x28\x00\x00\x00\x00\x01\x04\x00\x01\x00\x00\x00\x00\x00\x00\x00", buff, "packet 1088/1089")
 
     def bulkRead(self, endpoint, length, timeout=None):
         return self.dev.bulkRead(endpoint, length, timeout=(1000 if timeout is None else timeout))
@@ -65,7 +59,13 @@ class T48:
         assert len(buff) == len(old)
         return buff
 
-    def winusb(self):
+
+    def winusb_16(self):
+        # Seems to be same as below, just fewer bytes verified
+        buff = self.controlRead(0xC0, 0xEE, 0x0000, 0x0004, 16)
+        validate_read(b"\x28\x00\x00\x00\x00\x01\x04\x00\x01\x00\x00\x00\x00\x00\x00\x00", buff, "packet 33/34")
+
+    def winusb_40(self):
         """
         00000000  28 00 00 00 00 01 04 00  01 00 00 00 00 00 00 00  |(...............|
         00000010  00 01 57 49 4E 55 53 42  00 00 00 00 00 00 00 00  |..WINUSB........|
@@ -80,8 +80,42 @@ class T48:
         assert len(buff) == len(ref)
         return buff
 
-    def reset(self):
+    def reset0_raw(self):
         self.bulkWrite(0x01, b"\x3F\x00\x00\x00\x00\x00\x00\x00")
+
+    def reset2_raw(self):
+        self.bulkWrite(0x01, b"\x3F\x02\x00\x01\x00\xFF\x03\x08")
+
+    def reset(self, mode=0):
+        """
+        Reset and grab the new device / context after it comes back up
+        """
+
+        if mode == 0:
+            self.reset0_raw()
+        elif mode == 2:
+            self.reset2_raw()
+        else:
+            assert 0, mode
+
+
+        # 1.4 sec
+        tstart = time.time()
+        while True:
+            try:
+                t = get()
+                break
+            except DeviceNotFound:
+                pass
+            except usb1.USBErrorBusy:
+                pass
+            time.sleep(0.05)
+        dt = time.time() - tstart
+        # print("Found after %0.1f sec" % dt)
+
+        # Shift in new device
+        self.usbcontext = t.usbcontext
+        self.dev = t.dev
 
 def open_dev(usbcontext=None):
     vid_want = 0xA466

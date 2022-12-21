@@ -11,7 +11,7 @@ def main():
     args = parser.parse_args()
 
     t = t48.get()
-    t.reset()
+    t.reset_raw()
 
     # 1.4 sec
     tstart = time.time()
