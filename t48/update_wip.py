@@ -64,15 +64,27 @@ def replay(t):
     """
     t.version_raw()
 
-    print("Enter timeout section...")
+    """
+    so starting from
+    bulkWrite(0x01, b"\x3C\x00\x00\x00\x00\x00\x00\x00\x23\x01\x67\x45\xAB\x89\xEF\xCD")
+    this is the bulk-write setup command (aka command 0x3c). It sets up the firmware for receiving a large blob from the host.
+    the last 8 bytes are a magic value, and must be exactly those
+    you then have a series of bulk-write commands which are used to send over the new firmware blob.
+    """
+
+    """
+    maybe this is a flash erase
+    """
+    print("Sending update command...")
     # not the same as the pre-reset command (3D)
     # Generated from packet 111/112
     bulkWrite(0x01, b"\x3C\x00\x00\x00\x00\x00\x00\x00\x23\x01\x67\x45\xAB\x89\xEF\xCD")
     # Generated from packet 113/114
+    # XXX: this needs a longer timeout. How long?
     buff = bulkRead(0x81, 0x0200, timeout=3000)
     validate_read(b"\x3C\x00\x30\x00\x00\x01\x07\x00", buff, "packet 113/114")
-    print("passed timeout section!")
 
+    print("Sending firmware...")
     # Generated from packet 115/116
     bulkWrite(0x01, b"\x3B\x01\x00\x00\x00\x00\x00\x00\x23\x01\x67\x45\xAB\x89\xEF\xCD")
     # Generated from packet 117/118
