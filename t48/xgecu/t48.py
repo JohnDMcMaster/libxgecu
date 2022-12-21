@@ -3,6 +3,9 @@ import time
 import usb1
 # from usbrply.util import hexdump
 
+class DeviceNotFound(Exception):
+    pass
+
 def validate_read(expected, actual, msg):
     if expected != actual:
         print('Failed %s' % msg)
@@ -45,6 +48,14 @@ class T48:
         self.dev.interruptWrite(endpoint, data, timeout=(1000 if timeout is None else timeout))
 
     def version_raw(self):
+        """
+        Can request more but won't get more bytes
+
+        00000000  00 01 30 00 07 01 07 00  32 30 32 32 2D 30 39 2D  |..0.....2022-09-|
+        00000010  32 31 30 39 3A 32 37 00  32 39 41 30 33 36 33 32  |2109:27.29A03632|
+        00000020  57 44 4E 35 59 46 4F 4D  4B 32 52 52 56 4A 30 41  |WDN5YFOMK2RRVJ0A|
+        00000030  32 46 39 53 39 36 31 33  1B 06 00 00 01 00 00     |2F9S9613....... |
+        """
         self.bulkWrite(0x01, b"\x00\x00\x00\x00\x00\x00\x00\x00")
         buff = self.bulkRead(0x81, 0x0200)
         old = (b"\x00\x01\x30\x00\x03\x01\x07\x00\x32\x30\x32\x32\x2D\x30\x39\x2D"
@@ -54,7 +65,7 @@ class T48:
         assert len(buff) == len(old)
         return buff
 
-    def test1(self):
+    def winusb(self):
         """
         00000000  28 00 00 00 00 01 04 00  01 00 00 00 00 00 00 00  |(...............|
         00000010  00 01 57 49 4E 55 53 42  00 00 00 00 00 00 00 00  |..WINUSB........|
@@ -91,7 +102,7 @@ def open_dev(usbcontext=None):
                 vid,
                 pid))
             return udev.open()
-    raise Exception("Failed to find a device")
+    raise DeviceNotFound("Failed to find a device")
 
 def get():
     usbcontext = usb1.USBContext()

@@ -2,7 +2,6 @@
 
 from xgecu import t48
 from xgecu.util import hexdump
-import argparse
 
 def main():
     import argparse 
