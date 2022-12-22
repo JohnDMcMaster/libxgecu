@@ -4,7 +4,7 @@ from xgecu import t48
 from xgecu.util import hexdump
 
 def main():
-    import argparse 
+    import argparse
 
     parser = argparse.ArgumentParser(description="Version info")
     parser.add_argument("--fn-in", help="Parse file instead of running live")
@@ -20,7 +20,7 @@ def main():
         print("Read %u bytes from USB" % (len(raw),))
     hexdump(raw)
     if args.fn_out:
-        open(args.fn, "wb").write(raw)
+        open(args.fn_out, "wb").write(raw)
     print("")
     version = t48.parse_version(raw, verbose=0)
     print("model: %s" % version["model"])
