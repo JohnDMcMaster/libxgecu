@@ -32,11 +32,15 @@ def parse_version(buf, decode=True):
     00000030  32 46 39 53 39 36 31 33  1B 06 00 00 01 00 00     |2F9S9613....... |
     """
     ss = StructStreamer(buf, verbose=0)
+    # always 00 01 30 00
+    # magic number?
     ss.res(4)
     # ex: 37 01 => version 1.55
     # ex: 41 01 => version 1.65
     ss.u8("ver_minor")
     ss.u8("ver_major")
+    # There are several bytes that correlate with model
+    # Assume this for now
     # ex: 07 00 => T48
     # ex: 08 00 => T56
     ss.u16l("model")
@@ -51,7 +55,14 @@ def parse_version(buf, decode=True):
     """
     ss.strn0("date", 14)
     ss.strn("sn", 32)
-    # 1B 06 00 00 01 00 00
+    """
+    T48
+    0A 06 00 00 01 00 00
+    1B 06 00 00 01 00 00
+
+    T56
+    F3 05 00 00 01 00 00
+    """
     ss.res(7)
 
     # T56 has an extra 0 byte at the end, shrug
