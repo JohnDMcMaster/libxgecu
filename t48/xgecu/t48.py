@@ -21,7 +21,7 @@ def validate_read(expected, actual, msg):
         #raise Exception('failed validate: %s' % msg)
 
 
-def parse_version(buf, decode=True):
+def parse_version(buf, decode=True, verbose=False):
     """Return best effort decoded version info as dict"""
     assert len(buf) == 63 or len(buf) == 64
     """
@@ -31,7 +31,7 @@ def parse_version(buf, decode=True):
     00000020  57 44 4E 35 59 46 4F 4D  4B 32 52 52 56 4A 30 41  |WDN5YFOMK2RRVJ0A|
     00000030  32 46 39 53 39 36 31 33  1B 06 00 00 01 00 00     |2F9S9613....... |
     """
-    ss = StructStreamer(buf, verbose=0)
+    ss = StructStreamer(buf, verbose=verbose)
     # always 00 01 30 00
     # magic number?
     ss.res(4)
@@ -53,8 +53,10 @@ def parse_version(buf, decode=True):
     00000000  32 31 2D 31 30 2D 30 38  20 30 30 3A 33 37 31 33  |21-10-08 00:3713|
     00000010  32 30 31 30 37 39 30 39  33 4C 57 39 52 56 36 4B  |201079093LW9RV6K|
     """
-    ss.strn0("date", 14)
-    ss.strn("sn", 32)
+    ss.strn0("date", 16)
+    # GUI splits this into "DEV Code" + "Serial"
+    ss.strn("dev_code", 8)
+    ss.strn("serial", 24)
     """
     T48
     0A 06 00 00 01 00 00

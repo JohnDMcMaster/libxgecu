@@ -160,13 +160,11 @@ class StructStreamer:
     def u16b(self, k):
         v = struct.unpack('>H', self.pop_n(2))[0]
         self.d[k] = v
-        del self.buf[0:2]
         return v
     
     def u16l(self, k):
         v = struct.unpack('<H', self.pop_n(2))[0]
         self.d[k] = v
-        del self.buf[0:2]
         return v
 
     def u8(self, k):

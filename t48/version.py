@@ -22,11 +22,12 @@ def main():
     if args.fn_out:
         open(args.fn, "wb").write(raw)
     print("")
-    version = t48.parse_version(raw)
+    version = t48.parse_version(raw, verbose=0)
     print("model: %s" % version["model"])
-    print("S/N: %s" % version["sn"])
+    print("Dev code: %s" % version["dev_code"])
+    print("Serial: %s" % version["serial"])
     print("FW version: %u.%u" % (version["ver_major"], version["ver_minor"]))
-    print("date: %s" % version["date"])
+    print("Manufacture date: %s" % version["date"])
 
     hexdump(version["res00"], indent="res00: ")
     hexdump(version["res56"], indent="res56: ")
