@@ -28,6 +28,9 @@ def main():
     print("FW version: %u.%u" % (version["ver_major"], version["ver_minor"]))
     print("date: %s" % version["date"])
 
+    hexdump(version["res00"], indent="res00: ")
+    hexdump(version["res56"], indent="res56: ")
+
 
 if __name__ == "__main__":
     main()
