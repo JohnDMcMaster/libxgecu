@@ -7,15 +7,27 @@ def main():
     import argparse 
 
     parser = argparse.ArgumentParser(description="Version info")
-    parser.add_argument("fn", nargs="?", help="Output file name")
+    parser.add_argument("--fn-in", help="Parse file instead of running live")
+    parser.add_argument("fn_out", nargs="?", help="Output file name")
     args = parser.parse_args()
 
-    t = t48.get()
-    raw = t.version_raw()
-    # hexdump(t.test1())
+    if args.fn_in:
+        raw = open(args.fn_in, "rb").read()
+        print("Read %u bytes from %s" % (len(raw), args.fn_in))
+    else:
+        t = t48.get()
+        raw = t.version_raw()
+        print("Read %u bytes from USB" % (len(raw),))
     hexdump(raw)
-    if args.fn:
+    if args.fn_out:
         open(args.fn, "wb").write(raw)
+    print("")
+    version = t48.parse_version(raw)
+    print("model: %s" % version["model"])
+    print("S/N: %s" % version["sn"])
+    print("FW version: %u.%u" % (version["ver_major"], version["ver_minor"]))
+    print("date: %s" % version["date"])
+
 
 if __name__ == "__main__":
     main()

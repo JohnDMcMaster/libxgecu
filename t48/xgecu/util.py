@@ -1,4 +1,5 @@
 import sys
+import struct
 
 def hexdump(data, label=None, indent='', address_width=8, f=sys.stdout):
     def isprint(c):
@@ -78,3 +79,98 @@ def tostr(buff):
 
 def isprint(c):
     return c >= ' ' and c <= '~'
+
+class StructStreamer:
+    def __init__(self, buf, verbose=False):
+        self.buf = bytearray(buf)
+        self.len = len(self.buf)
+        self.d = {}
+        self.verbose = verbose
+
+    def done(self):
+        assert len(self.buf) == 0
+        return self.d
+
+    def popped(self):
+        """Number of bytes consumed so far"""
+        return self.len - len(self.buf)
+
+    def pop_n(self, n):
+        self.verbose and hexdump(self.buf, "pop %u" % n)
+        assert len(self.buf) >= n, "Only %u bytes left, need %u" % (len(self.buf), n)
+        v = self.buf[0:n]
+        del self.buf[0:n]
+        return v
+
+    def assert_bytes(self, buf):
+        got = self.pop_n(len(buf))
+        assert got == buf
+
+    def assert_str(self, want):
+        got = self.pop_n(len(want))
+        got = tostr(got)
+        assert want == got, "Wanted %s got %s" % (want, got)
+
+    def res(self, n, k=None):
+        """
+        Add n reserved / unknown bytes
+        """
+        if k is None:
+            if self.len < 10:
+                k = "res%01u" % self.popped()
+            elif self.len < 100:
+                k = "res%02u" % self.popped()
+            else:
+                k = "res%03u" % self.popped()
+        v = self.pop_n(n)
+        self.d[k] = v
+        return v
+
+    def strn(self, k, n):
+        """
+        pop string of exactly n characters
+        """
+        v = tostr(self.pop_n(n))
+        self.d[k] = v
+        return v
+
+    def strn0(self, k, n):
+        """
+        pop string of exactly n characters, but truncate at first 0, if any
+        """
+        buf = self.pop_n(n)
+        i = buf.find(0)
+        if i >= 0:
+            buf = buf[0:i]
+        v = tostr(buf)
+        self.d[k] = v
+        return v
+
+    def u32b(self, k):
+        v = struct.unpack('>I', self.pop_n(4))[0]
+        self.d[k] = v
+        return v
+
+    def u32l(self, k):
+        v = struct.unpack('<I', self.pop_n(4))[0]
+        self.d[k] = v
+        del self.buf[0:4]
+        return v
+    
+    def u16b(self, k):
+        v = struct.unpack('>H', self.pop_n(2))[0]
+        self.d[k] = v
+        del self.buf[0:2]
+        return v
+    
+    def u16l(self, k):
+        v = struct.unpack('<H', self.pop_n(2))[0]
+        self.d[k] = v
+        del self.buf[0:2]
+        return v
+
+    def u8(self, k):
+        v = self.buf[0]
+        self.d[k] = v
+        del self.buf[0:1]
+        return v
