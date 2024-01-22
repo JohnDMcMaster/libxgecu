@@ -3,17 +3,19 @@
 from xgecu import t48
 import time
 import usb1
+import click
+from more_itertools import batched
 
-def replay(t):
+def replay(t, firmware_binary):
     dev = t.dev
     validate_read = t48.validate_read
-    
+
     def bulkRead(endpoint, length, timeout=None):
         return dev.bulkRead(endpoint, length, timeout=(1000 if timeout is None else timeout))
 
     def bulkWrite(endpoint, data, timeout=None):
         dev.bulkWrite(endpoint, data, timeout=(1000 if timeout is None else timeout))
-    
+
     def controlRead(bRequestType, bRequest, wValue, wIndex, wLength,
                     timeout=None):
         return dev.controlRead(bRequestType, bRequest, wValue, wIndex, wLength,
@@ -90,12 +92,15 @@ def replay(t):
     print("Sending firmware...")
     # Generated from packet 115/116
     bulkWrite(0x01, b"\x3B\x01\x00\x00\x00\x00\x00\x00\x23\x01\x67\x45\xAB\x89\xEF\xCD")
-    
 
-    FIXME: insert firmware here
-    
+    for chunk in batched(firmware_binary[16:], 276):
+        chunk = bytes(chunk)
+        bulkWrite(0x01, b"\x3B\x00\x14\x01\x00\x00\x00\x00" + chunk)
+        buff = bulkRead(0x81, 0x0200)
+        validate_read(b"\x3B\x00\x30\x00\x00\x01\x07\x00", buff, "bad reply")
 
-
+    # Generated from packet 3885/3886
+    bulkWrite(0x01, b"\x3B\x03\x00\x01\x00\xFF\x03\x08" + bytes(252) + b"\x68\x86\xEF\xCD")
     # Generated from packet 3887/3888
     buff = bulkRead(0x81, 0x0200)
     validate_read(b"\x3B\x00\x30\x00\x00\x01\x07\x00", buff, "packet 3887/3888")
@@ -105,21 +110,19 @@ def replay(t):
     """
     # Generated from packet 3891/3892
     bulkWrite(0x01, b"\x3F\x02\x00\x01\x00\xFF\x03\x08")
-    
+
     note previous reset
     self.bulkWrite(0x01, b"\x3F\x00\x00\x00\x00\x00\x00\x00")
     """
     t.reset(mode=2)
 
 
-def main():
-    import argparse 
-
-    parser = argparse.ArgumentParser(description="Reset programmer")
-    args = parser.parse_args()
+@click.command('update_wip')
+@click.argument('firmware_file', type=click.File('rb'))
+def main(firmware_file):
+    """A utility to flash a T48 firmware image"""
 
     t = t48.get()
-
 
 
     """
@@ -180,7 +183,7 @@ def main():
     ***********************************************************
     """
     print("56-update")
-    replay(t)
+    replay(t, firmware_file.read())
 
 
     """
@@ -221,7 +224,7 @@ def main():
             b"\x32\x46\x39\x53\x39\x36\x31\x33\x1E\x06\x00\x00\x01\x00\x00", buff, "packet 3941/3942")
     """
     t.version_raw()
-    
+
     print("update ok!")
 
 if __name__ == "__main__":
