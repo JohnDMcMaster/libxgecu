@@ -26,7 +26,7 @@ def main():
     print("model: %s" % version["model"])
     print("Dev code: %s" % version["dev_code"])
     print("Serial: %s" % version["serial"])
-    print("FW version: %u.%u" % (version["ver_major"], version["ver_minor"]))
+    print(f"FW version: {version['ver_major']}.{version['ver_minor']:02}")
     print("Manufacture date: %s" % version["date"])
 
     hexdump(version["res00"], indent="res00: ")
