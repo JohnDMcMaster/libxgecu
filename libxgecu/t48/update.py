@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from xgecu import t48
+from libxgecu.t48.xgecu import t48
 import time
 import usb1
 import click
