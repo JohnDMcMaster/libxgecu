@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "libxgecu"
+version = "0.1.0"
+description = "Reference code to talk to stock xgecu firmware (T48, T56, etc)"
+authors = ["John Mcmaster <JohnDMcMaster@gmail.com>"]
+license = "BSD-2-Clause"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+click = "^8.1.7"
+libusb1 = "^3.1.0"
+more-itertools = "^10.2.0"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+t48_update = 'libxgecu.t48.update:main'
+t48_version = 'libxgecu.t48.version:main'
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
