@@ -2,7 +2,7 @@ import binascii
 import time
 import usb1
 import struct
-from xgecu.util import StructStreamer
+from .util import StructStreamer
 # from usbrply.util import hexdump
 
 model_i2s = {

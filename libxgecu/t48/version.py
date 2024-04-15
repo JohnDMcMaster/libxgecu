@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from xgecu import t48
-from xgecu.util import hexdump
+from libxgecu.t48.xgecu import t48
+from libxgecu.t48.xgecu.util import hexdump
 
 def main():
     import argparse
