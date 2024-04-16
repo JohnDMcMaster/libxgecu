@@ -16,7 +16,7 @@ poetry shell
 ### Call package entry points in virtual env
 ```
 poetry run t48_update
-poetry run t48_verstion
+poetry run t48_version
 ```
 
 ### Build sdist and wheel
