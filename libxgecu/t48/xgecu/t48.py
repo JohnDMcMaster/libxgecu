@@ -163,6 +163,8 @@ class T48:
         else:
             assert 0, mode
 
+        # Needed on macOS. Don't ask
+        time.sleep(3)
 
         # 1.4 sec
         tstart = time.time()
